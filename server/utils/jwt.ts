@@ -11,3 +11,13 @@ interface ITokenOptions {
   secure?: boolean;
 }
 
+export const sendToken = (user: IUser, statusCode: number, res: Response) => {
+  const accessToken = user.signAccessToken();
+  const refreshToken = user.signRefreshToken();
+
+  //upload session to redis
+
+
+  // parse envirnoment variables to integrates with fallback values
+
+};
