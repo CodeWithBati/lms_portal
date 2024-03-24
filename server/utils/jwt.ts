@@ -10,3 +10,4 @@ interface ITokenOptions {
   sameSite: "lax" | "strict" | "none" | undefined;
   secure?: boolean;
 }
+
