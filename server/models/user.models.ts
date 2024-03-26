@@ -39,12 +39,11 @@ const userSchema: Schema<IUser> = new mongoose.Schema(
     },
     password: {
       type: String,
-      required: [true, "please enter your password"],
       minlength: [8, "Password should be 8 characters"],
       select: false,
     },
     avatar: {
-      public_is: String,
+      public_id: String,
       url: String,
     },
     role: {
