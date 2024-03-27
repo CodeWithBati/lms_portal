@@ -235,6 +235,8 @@ export const UpdateAccessToken = CatchAsyncError(
           expiresIn: "5",
         }
       );
+
+      req.user = user;
       res.cookie("access_token", accessToken, accessTokenOption);
       res.cookie("refresh_token", refreshToken, refreshTokenOption);
 
@@ -279,6 +281,89 @@ export const socialAuth = CatchAsyncError(
       } else {
         sendToken(user, 200, res);
       }
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//User info Update
+interface IUserInfoUpdate {
+  name?: string;
+  email?: string;
+}
+
+export const userInfoUpdate = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { name, email } = req.body as IUserInfoUpdate;
+
+      const userId = req.user?._id;
+
+      const user = await userModel.findById(userId);
+
+      if (email && user) {
+        const isEmailExist = await userModel.findOne({ email });
+        if (isEmailExist) {
+          return next(new ErrorHandler("Email already Exist!", 400));
+        }
+
+        user.email = email;
+      }
+
+      if (name && user) {
+        user.name = name;
+      }
+      await user?.save();
+
+      await redis.set(userId, JSON.stringify(user));
+
+      res.status(201).json({
+        success: true,
+        user,
+      });
+    } catch (error: any) {
+      return next(new ErrorHandler(error.message, 400));
+    }
+  }
+);
+
+//User Password Update
+interface IUpdatePassword {
+  oldPassword: string;
+  newPassword: string;
+}
+
+export const updateUserPassword = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { oldPassword, newPassword } = req.body as IUpdatePassword;
+
+      if (!oldPassword || !newPassword) {
+        return next(new ErrorHandler("Please enter old password", 400));
+      }
+      const user = await userModel.findById(req.user?._id).select("+password");
+
+      if (user?.password === undefined) {
+        return next(new ErrorHandler("Invalid user", 400));
+      }
+
+      const isMatchPassword = user.comparePassowrd(oldPassword);
+
+      if (!isMatchPassword) {
+        return next(new ErrorHandler("Invalid Password", 400));
+      }
+
+      user.password = newPassword;
+
+      await user.save();
+
+      await redis.set(req.user?._id, JSON.stringify(user));
+
+      res.status(201).json({
+        success: true,
+        user,
+      });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 400));
     }
