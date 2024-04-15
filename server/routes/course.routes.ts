@@ -7,7 +7,7 @@ courseRouter.post("/create-course", isAuthenticated, authoriseRole("admin"), upl
 courseRouter.put("/edit-course/:id", isAuthenticated, authoriseRole("admin"), editCourse);
 courseRouter.get("/get-single-course/:id", getSingleCourse)
 courseRouter.get("/get-all-course", getAllCourses)
-courseRouter.get("/get-course-content/:id", getCourseContent)
+courseRouter.get("/get-course-content/:id", isAuthenticated, getCourseContent)
 
 
 export default courseRouter;

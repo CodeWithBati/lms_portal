@@ -5,6 +5,7 @@ import cloudinary from "cloudinary";
 import { createCourse } from "../services/course.service";
 import CourseModel from "../models/course.model";
 import { redis } from "../utils/redis";
+import mongoose from "mongoose";
 
 // Upload Course
 
@@ -146,7 +147,7 @@ export const getCourseContent = CatchAsyncError(
       const cousreId = req.params.id;
 
       const isCourseExists = userCourseList?.find(
-        (course: any) => course.id === cousreId
+        (course: any) => course._id.toString() === cousreId
       );
 
       if (!isCourseExists) {
@@ -163,6 +164,30 @@ export const getCourseContent = CatchAsyncError(
       });
     } catch (error: any) {
       return next(new ErrorHandler(error.message, 500));
+    }
+  }
+);
+
+// add question in course
+interface IQuestion {
+  question: string;
+  courseId: string;
+  contentId: string;
+}
+
+export const addQuestion = CatchAsyncError(
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { question, courseId, contentId }: IQuestion = req.body;
+      const course = await CourseModel.findById(courseId);
+
+      if (!mongoose.Types.ObjectId.isValid(contentId)) {
+        return next(new ErrorHandler("Invalid Content Id", 400));
+      }
+
+
+    } catch (err: any) {
+      return next(new ErrorHandler(err.message, 500));
     }
   }
 );
